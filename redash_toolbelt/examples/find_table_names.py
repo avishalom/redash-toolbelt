@@ -14,21 +14,18 @@ def find_table_names(url, key, data_source_id):
 
     schema_tables = [
         token.get("name")
-        for token in client._get(f"api/data_sources/{data_source_id}/schema")
-        .json()
-        .get("schema", [])
+        for token in client._get(f"api/data_sources/{data_source_id}/schema").
+        json().get("schema", [])
     ]
 
     queries = [
-        query
-        for query in client.paginate(client.queries)
+        query for query in client.paginate(client.queries)
         if query.get("data_source_id", None) == int(data_source_id)
     ]
 
     tables_by_qry = {
         query["id"]: [
-            table
-            for table in extract_table_names(query["query"])
+            table for table in extract_table_names(query["query"])
             if table in schema_tables or len(schema_tables) == 0
         ]
         for query in queries
@@ -54,9 +51,8 @@ def extract_table_names(str_sql):
     # This pattern captures all text that immdiately follows a FROM or JOIN
     # keyword except whitespace and parentheses. It effectively removes table
     # aliases like "<table> as t" or "<table> t"
-    PATTERN = re.compile(
-        r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE | re.UNICODE
-    )
+    PATTERN = re.compile(r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)",
+                         flags=re.IGNORECASE | re.UNICODE)
 
     regex_matches = [match for match in re.findall(PATTERN, fmt_sql)]
 
@@ -79,8 +75,7 @@ def extract_table_names(str_sql):
     ]
 
     flattened_sub_matches = [
-        i
-        for i in itertools.chain(*sub_regex_matches)
+        i for i in itertools.chain(*sub_regex_matches)
         if i not in flattened_split_matches
     ]
 
@@ -91,9 +86,8 @@ def print_summary(tables_by_qry):
     """Builds a summary showing table names and count of queries that reference them."""
 
     summary = {
-        table_name: sum(
-            [1 for tables in tables_by_qry.values() if table_name in tables]
-        )
+        table_name:
+        sum([1 for tables in tables_by_qry.values() if table_name in tables])
         for table_name in itertools.chain(*tables_by_qry.values())
     }
 
@@ -103,7 +97,9 @@ def print_summary(tables_by_qry):
     print(f"{'table':>{align}} | {'number of queries':>17}")
     print("-" * align + " | " + "-" * 17)
 
-    for t, num in sorted(summary.items(), key=lambda item: item[1], reverse=True):
+    for t, num in sorted(summary.items(),
+                         key=lambda item: item[1],
+                         reverse=True):
         print(f"{t:>{align}} | {num:>17}")
 
     print("\n")
@@ -112,19 +108,22 @@ def print_summary(tables_by_qry):
 def print_details(tables_by_qry):
     """Prints out (query_id, tablename) tuples"""
 
-    details = [
-        [(query, table) for table in tables] for query, tables in tables_by_qry.items()
-    ]
+    details = [[(query, table) for table in tables]
+               for query, tables in tables_by_qry.items()]
 
     for row in itertools.chain(*details):
         print(",".join([str(i) for i in row]))
 
 
 @click.command()
-@click.argument("url",)
-@click.argument("key",)
+@click.argument(
+    "url", )
+@click.argument(
+    "key", )
 @click.argument("data_source_id")
-@click.option("--detail", is_flag=True, help="Prints out all table/query pairs?")
+@click.option("--detail",
+              is_flag=True,
+              help="Prints out all table/query pairs?")
 def main(url, key, data_source_id, detail):
     """Find table names referenced in queries against DATA_SOURCE_ID"""
 
@@ -138,7 +137,6 @@ def main(url, key, data_source_id, detail):
 
 if __name__ == "__main__":
     main()
-
 
 # ┌───────────────────────────────────────────┐
 # │                                           │
@@ -161,7 +159,8 @@ def test_1():
     tables = extract_table_names(sql)
     expected = ["table0", "table1"]
 
-    assert len(tables) == len(expected) and all([i in expected for i in tables])
+    assert len(tables) == len(expected) and all(
+        [i in expected for i in tables])
 
 
 def test_2():
@@ -173,7 +172,8 @@ def test_2():
     tables = extract_table_names(sql)
     expected = ["table0", "table1"]
 
-    assert len(tables) == len(expected) and all([i in expected for i in tables])
+    assert len(tables) == len(expected) and all(
+        [i in expected for i in tables])
 
 
 def test_3():
@@ -185,7 +185,8 @@ def test_3():
     tables = extract_table_names(sql)
     expected = ["table0", "table1"]
 
-    assert len(tables) == len(expected) and all([i in expected for i in tables])
+    assert len(tables) == len(expected) and all(
+        [i in expected for i in tables])
 
 
 def test_4():
@@ -197,7 +198,8 @@ def test_4():
     tables = extract_table_names(sql)
     expected = ["schema.table0", "schema.table1"]
 
-    assert len(tables) == len(expected) and all([i in expected for i in tables])
+    assert len(tables) == len(expected) and all(
+        [i in expected for i in tables])
 
 
 def test_5():
@@ -213,7 +215,8 @@ def test_5():
     tables = extract_table_names(sql)
     expected = ["table0", "table1"]
 
-    assert len(tables) == len(expected) and all([i in expected for i in tables])
+    assert len(tables) == len(expected) and all(
+        [i in expected for i in tables])
 
 
 def test_6():
@@ -227,7 +230,8 @@ def test_6():
     tables = extract_table_names(sql)
     expected = ["table1", "table2", "table3", "table4", "table5", "table6"]
 
-    assert len(tables) == len(expected) and all([i in expected for i in tables])
+    assert len(tables) == len(expected) and all(
+        [i in expected for i in tables])
 
 
 def test_7():
@@ -239,7 +243,8 @@ def test_7():
     tables = extract_table_names(sql)
     expected = ["[table0]", "[table1]"]
 
-    assert len(tables) == len(expected) and all([i in expected for i in tables])
+    assert len(tables) == len(expected) and all(
+        [i in expected for i in tables])
 
 
 def test_8():
@@ -251,7 +256,8 @@ def test_8():
     tables = extract_table_names(sql)
     expected = ["table1", "table2", "table3", "table4"]
 
-    assert len(tables) == len(expected) and all([i in expected for i in tables])
+    assert len(tables) == len(expected) and all(
+        [i in expected for i in tables])
 
 
 def test_9():
@@ -265,4 +271,5 @@ def test_9():
     tables = extract_table_names(sql)
     expected = ["table1", "table2", "table3", "table4", "table5"]
 
-    assert len(tables) == len(expected) and all([i in expected for i in tables])
+    assert len(tables) == len(expected) and all(
+        [i in expected for i in tables])
